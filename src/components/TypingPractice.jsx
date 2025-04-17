@@ -27,6 +27,7 @@ const TypingPractice = () => {
             
             setTargetText(quote);
             setAuthorText(author);
+            setInputText("");
             setStatusList(Array(quote.length).fill("default"));
             setCurrentIndex(0);
             setStartTime(null);
@@ -48,10 +49,8 @@ const TypingPractice = () => {
         setIsComposing(false); // 조합 끝
         const inputValue = e.currentTarget.textContent;
         const newChar = inputValue.charAt(inputValue.length - 1);
-        console.log(inputText, newChar);
         setInputText(inputText + newChar);
         processChar(newChar); // 완성된 한글 문자만 처리
-        // e.currentTarget.textContent = "";
       };
 
     const handleInput = (e) => {
@@ -74,11 +73,9 @@ const TypingPractice = () => {
         // 업데이트 관련
         const updated = [...statusList];
 
-        const newIndex = inputText.length;
+        const newIndex = inputText.length + 1;
         setStatusList(updated);
         setCurrentIndex(newIndex);
-
-        console.log(inputChar , targetText[currentIndex], inputChar === targetText[currentIndex], inputText[currentIndex] == targetText[currentIndex]);
 
         updated[currentIndex] =
         inputChar === targetText[currentIndex] ? "correct" : "incorrect"; // 해당 글자 수의 텍스트가 맞는지 확인 후 correct 여부 확인     
@@ -105,14 +102,30 @@ const TypingPractice = () => {
         }
 
         if (e.key === "Enter" && currentIndex >= targetText.length) {
+            e.currentTarget.textContent = "";
+            setInputText("");
             loadNewQuote();
         }
 
-        if (e.key == "Backspace") {
+        console.log(e.key, e.code);
+
+        if (e.key == "Backspace" || e.code == "Backspace") {
+            const inputValue = e.currentTarget.textContent;
+            if (e.key == "Process") {
+                const newChar = inputValue.charAt(inputValue.length - 1);
+                console.log(inputText.substring(0, inputText.length - 1));
+                
+            } else {
+                setInputText(inputValue);
+            }
+            console.log(inputText, inputValue);
+
             setCurrentIndex(inputText.length);
             const updated = [...statusList];
             updated[currentIndex] = "default";
             setStatusList(updated);
+            // console.log(inputText);
+            // console.log(statusList, currentIndex);
         }
     }
 
