@@ -41,26 +41,30 @@ const TypingPractice = () => {
         loadNewQuote();
     }, []);
 
-    const handleCompositionStart = () => {
+    const handleCompositionStart = (e) => {
         setIsComposing(true); // 한글 조합 시작
       };
       
       const handleCompositionEnd = (e) => {
         setIsComposing(false); // 조합 끝
-        const inputValue = e.currentTarget.textContent;
-        const newChar = inputValue.charAt(inputValue.length - 1);
-        setInputText(inputText + newChar);
-        processChar(newChar); // 완성된 한글 문자만 처리
+        console.log(e, isComposing);
+        // const inputValue = e.currentTarget.textContent;
+        // const newChar = inputValue.charAt(inputValue.length - 1);
+        // setInputText(inputValue);
+        // processChar(newChar); // 완성된 한글 문자만 처리
       };
 
     const handleInput = (e) => {
-        if (isComposing) return;
-
         const inputValue = e.currentTarget.textContent;
-        const newChar = inputValue.charAt(inputValue.length - 1); // 마지막 입력 문자
-        setInputText(inputText + newChar);
+        setInputText(inputValue);
+        // processChar();
+        // if (isComposing) return;
 
-        processChar(newChar);
+        // const inputValue = e.currentTarget.textContent;
+        // const newChar = inputValue.charAt(inputValue.length - 1); // 마지막 입력 문자
+        // setInputText(inputValue);
+
+        processChar();
     };
 
     const processChar = (inputChar) => {
@@ -72,13 +76,24 @@ const TypingPractice = () => {
 
         // 업데이트 관련
         const updated = [...statusList];
-
-        const newIndex = inputText.length + 1;
-        setStatusList(updated);
+        const newIndex = inputText.length;
         setCurrentIndex(newIndex);
 
-        updated[currentIndex] =
-        inputChar === targetText[currentIndex] ? "correct" : "incorrect"; // 해당 글자 수의 텍스트가 맞는지 확인 후 correct 여부 확인     
+        // console.log(inputText, inputText[currentIndex], targetText[currentIndex], currentIndex);
+
+        // updated[currentIndex] =
+        // inputText[currentIndex] === targetText[currentIndex] ? "correct" : "incorrect"; // 해당 글자 수의 텍스트가 맞는지 확인 후 correct 여부 확인     
+
+        updated[currentIndex-1] =
+        inputText[currentIndex-1] === targetText[currentIndex-1] ? "correct" : "incorrect"; // 해당 글자 수의 텍스트가 맞는지 확인 후 correct 여부 확인
+        setStatusList(updated);
+
+        // for (let i = 0; i < inputText.length; i++) {
+        //     updated[i] =
+        //     inputText[i] === targetText[i] ? "correct" : "incorrect"; // 해당 글자 수의 텍스트가 맞는지 확인 후 correct 여부 확인     
+        // }
+
+        // setStatusList(updated);
 
         // 실시간 결과 계산
         const elapsed = (Date.now() - (startTime || Date.now())) / 1000;
@@ -90,11 +105,23 @@ const TypingPractice = () => {
     }
 
     const handleKeyDown = (e) => {
-        if (e.code == "Space" && !isComposing) {
-            e.preventDefault();
+        const inputValue = e.currentTarget.textContent;
+        const allowedPunctuations = [".", ",", "!", "?", ";", ":", "'", "\"", "’", "”", "-"];
 
-            setInputText(inputText + " ");
-            console.log(inputText);
+        if (allowedPunctuations.includes(e.key)) {
+            const updated = [...statusList];
+            const newIndex = inputText.length;
+            setCurrentIndex(newIndex);
+            setInputText(inputValue + e.key);
+            updated[currentIndex] =
+            e.key === targetText[currentIndex] ? "correct" : "incorrect"; // 해당 글자 수의 텍스트가 맞는지 확인 후 correct 여부 확인
+            setStatusList(updated);
+        }
+
+        if (e.code == "Space" ) {
+            const inputValue = e.currentTarget.textContent;
+            setInputText(inputValue);
+            // setInputText(inputText + " ");
             // 👉 onCompositionEnd가 먼저 실행될 수 있도록 지연 처리
             setTimeout(() => {
                 processChar(" ");
@@ -107,26 +134,21 @@ const TypingPractice = () => {
             loadNewQuote();
         }
 
-        console.log(e.key, e.code);
-
         if (e.key == "Backspace" || e.code == "Backspace") {
             const inputValue = e.currentTarget.textContent;
-            if (e.key == "Process") {
-                const newChar = inputValue.charAt(inputValue.length - 1);
-                console.log(inputText.substring(0, inputText.length - 1));
-                
-            } else {
-                setInputText(inputValue);
-            }
-            console.log(inputText, inputValue);
+            setInputText(inputValue);
 
-            setCurrentIndex(inputText.length);
             const updated = [...statusList];
             updated[currentIndex] = "default";
+            setCurrentIndex(inputText.length-1);
+            updated[currentIndex] = "default";
             setStatusList(updated);
-            // console.log(inputText);
-            // console.log(statusList, currentIndex);
         }
+    }
+
+    const handleFocus = (e) => {
+        e.currentTarget.textContent = "";
+        e.currentTarget.textContent = inputText;
     }
 
     return (
@@ -157,6 +179,7 @@ const TypingPractice = () => {
                 onCompositionStart={handleCompositionStart}
                 onCompositionEnd={handleCompositionEnd}
                 onKeyDown={handleKeyDown}
+                onFocus={handleFocus}
                 style={{
                     position: "absolute",
                     opacity: 0,
